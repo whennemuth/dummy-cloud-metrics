@@ -60,6 +60,7 @@ div.serviceinfo {
   padding: 10px;
   display: block;
   float:left;
+  clear:both;
   font: normal 10px monospace;
   border-left: 1px solid black;
   margin-bottom:10px;
@@ -77,7 +78,8 @@ div.instance {
 div.instanceinfo {
   padding: 10px;
   display: block;
-  float:left;
+  float: left;
+  clear: both;
   font: normal 10px monospace;
   border-left: 1px solid black;
   margin-bottom:10px;
