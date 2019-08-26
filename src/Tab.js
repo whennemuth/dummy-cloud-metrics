@@ -30,11 +30,20 @@ class TabStrip extends Component {
     }
 
     switchTabs = (index) => {
-        let refreshedTabdefs = this.props.refreshTabdefs(index)
+        let refreshedTabdefs = this.props.refreshTabdefs(index, true)
+        this.stateChangeTriggeredRender = true
         this.setState({ tabdefs : refreshedTabdefs })
     }
 
     render() {
+        const stateChanged = this.stateChangeTriggeredRender
+        this.stateChangeTriggeredRender = false
+        if(!stateChanged) {
+            let idx = this.state.tabdefs.findIndex(tabdef => {
+                return tabdef.active
+            })
+            this.state.tabdefs = this.props.refreshTabdefs(idx, false)
+        }
         const tabs = this.state.tabdefs.map((tabdef, index, defs) => {
             return (
                 <Tab 

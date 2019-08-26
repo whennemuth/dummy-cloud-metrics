@@ -34,7 +34,7 @@ class Instances extends Component {
         });
     }
 
-    switchTabs = (index) => {
+    switchTabs = (index, refreshState) => {
         let defs = this.state.tabdefs.map((def, idx) => {
             return {
                 data : def.data,
@@ -42,12 +42,14 @@ class Instances extends Component {
                 active : (idx === index)
             }
         })
-        this.setState({tabdefs: defs})
+        if(refreshState) {
+            this.setState({tabdefs: defs})
+        }
         return defs
     }
 
     getData = () => {
-        let activeTabdef = this.state.tabdefs.find(tabdef =>{
+        let activeTabdef = this.state.tabdefs.find(tabdef => {
             if(tabdef.active) {
                 return tabdef
             }
@@ -117,11 +119,8 @@ class Instance extends Component {
             activeTabIdx = 0
         }
 
-        // A different instance may have been clicked, which means the instance state would have changed, so get it again.
-        this.state = this.getState()
-
-        // Flush the tabdefs
-        this.state.tabdefs = []
+        // A different instance may have been clicked, which means the instance state would have changed, so get it again, and empty tabdefs.
+        this.state = this.getState([])
 
         // Reconstruct the tabdefs
         if(this.state.parentData == "CLUSTER") {
@@ -166,7 +165,7 @@ class Instance extends Component {
         })
     }
 
-    switchTabs = (index) => {
+    switchTabs = (index, refreshState) => {
         let defs = this.state.tabdefs.map((def, idx) => {
             return {
                 data : def.data,
@@ -174,7 +173,9 @@ class Instance extends Component {
                 active : (idx === index)
             }
         })
-        this.setState(this.getState(defs))
+        if(refreshState) {
+            this.setState(this.getState(defs))
+        }
         return defs
     }
 
@@ -188,6 +189,7 @@ class Instance extends Component {
                 currentTab = {
                     heading: (<Heading title={tabdef.label} />),
                     content: () => {
+                        // RESUME NEXT: Put in conditional logic here to pick out the dummy metrics tab and make some controls for it
                         return <JsonToTable json={tabdef.data} />
                     }
                 }
@@ -203,9 +205,6 @@ class Instance extends Component {
 
                 {/* { currentTab.heading }  */}
 
-{/* RESUME NEXT: currentTab.content() is refreshed when this render() function is invoked by a the parent components render() function. 
-However, the Tabstrip itself does not seem to refresh because its render() method invokes, but with what seems like a cache of old data.
-If this components tabstrip was clicked directly, then that suspected cache is cleared before the tabstrip is re-rendered */}
                 <div className="instanceinfo">
                     { currentTab.content() }
                 </div>

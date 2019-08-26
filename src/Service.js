@@ -28,7 +28,7 @@ class Services extends Component {
         });
     }
 
-    switchTabs = (index) => {
+    switchTabs = (index, refreshState) => {
         let defs = this.state.tabdefs.map((def, idx) => {
             return {
                 data : def.data,
@@ -36,7 +36,9 @@ class Services extends Component {
                 active : (idx === index)
             }
         })
-        this.setState({tabdefs: defs})
+        if(refreshState) {
+            this.setState({tabdefs: defs})
+        }        
         return defs
     }
 
