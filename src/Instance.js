@@ -4,6 +4,7 @@ import { ContainerInstanceLookup } from './Lookup'
 import TabStrip from './Tab'
 import JsonToTable from './TabularView'
 import Metrics from './Metric'
+import DummyMetrics from './DummyMetrics'
 import { tsImportEqualsDeclaration } from '@babel/types';
 
 const Heading = ({title}) => { return (<div className="separator">{title}</div>) };
@@ -20,8 +21,8 @@ class Instances extends Component {
     
         // The first tab represents all instances in the cluster collectively. Each remaining tab represents an individual instance.
         this.state.tabdefs.push({
-            data:"metrics-config",
-            label:"CONFIG",
+            data:"cluster-config",
+            label:"CLUSTER",
             active:true
         })
 
@@ -55,7 +56,7 @@ class Instances extends Component {
             }
         })
         // All tabs except for the first are for container instance information
-        return activeTabdef.data == "metrics-config" ? "CLUSTER" : activeTabdef.data
+        return activeTabdef.data == "cluster-config" ? "CLUSTER" : activeTabdef.data
     }
 
     render() {
@@ -121,7 +122,7 @@ class Instance extends Component {
 
         // A different instance may have been clicked, which means the instance state would have changed, so get it again, and empty tabdefs.
         this.state = this.getState([])
-
+ 
         // Reconstruct the tabdefs
         if(this.state.parentData == "CLUSTER") {
             this.state.tabdefs.push({
@@ -131,8 +132,16 @@ class Instance extends Component {
             })
     
             this.state.tabdefs.push({
-                data : "CLUSTER DATA",
-                label : "Cluster data",
+                data : {
+                    dummy: true,
+                    query: {
+                        scope: 'cluster',
+                        filter: {
+                            clusterId: 'TODO: get cluster id/arn'
+                        }
+                    }
+                },
+                label : "Cluster metrics",
                 active: activeTabIdx==1
             })
         }
@@ -144,12 +153,12 @@ class Instance extends Component {
             })
 
             this.state.tabdefs.push({
-                data: { // This will get passed in as <Metric data={data} /> It's not really content
+                data: { // This will get passed in as <Metric metricParms={data} /> It's not really content
                     dummy: true,
                     query: {
-                        filter: { 
-                            name: "instanceId",
-                            value: this.state.parentData.ec2InstanceId
+                        scope: 'instance',
+                        filter: {
+                            instanceId: this.state.parentData.ec2InstanceId
                         }
                     }
                 },
@@ -183,14 +192,38 @@ class Instance extends Component {
 
         this.loadData()
 
+        function tabdefUtil (tabdef) {
+            return {
+                tabdef: tabdef,
+                isMetaData: () => {
+                    return /meta/i.test(tabdef.label)
+                },
+                isMetricData: () => {
+                    return /metric/i.test(tabdef.label) && ! /dummy/i.test(tabdef.label)
+                },
+                isDummyData: () => {
+                    return /dummy/i.test(tabdef.label)
+                }
+            }
+        }
+
         let currentTab = null;
         this.state.tabdefs.forEach(tabdef => {
             if(tabdef.active) {
                 currentTab = {
                     heading: (<Heading title={tabdef.label} />),
                     content: () => {
-                        // RESUME NEXT: Put in conditional logic here to pick out the dummy metrics tab and make some controls for it
-                        return <JsonToTable json={tabdef.data} />
+                        let tabutil = new tabdefUtil(tabdef)
+                        if(tabutil.isMetaData()) {
+                            return <JsonToTable json={tabdef.data} />
+                        }
+                        else if(tabutil.isMetricData()) {
+                            return <Metrics metricParms={tabdef.data} />
+                        }
+                        else if(tabutil.isDummyData()) {
+                            return <DummyMetrics />
+                        }
+                        
                     }
                 }
             }

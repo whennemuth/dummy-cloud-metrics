@@ -90,7 +90,7 @@ div.clusterDummyConfig {
   display: block;
   float:left;
   font: normal 10px monospace;
-  border-left: 1px solid black;
+  /* border-left: 1px solid black; */
   margin-bottom:10px;
 }
 
